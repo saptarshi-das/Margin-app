@@ -16,8 +16,8 @@ export function Dashboard({ courses, isDark }: DashboardProps) {
 
   return (
     <div className={`rounded-2xl p-5 ${isDark
-        ? 'bg-white shadow-lg'
-        : 'bg-gradient-to-br from-gray-900 to-black'
+      ? 'bg-white shadow-lg'
+      : 'bg-gradient-to-br from-gray-900 to-black'
       } shadow-lg`}>
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
@@ -26,8 +26,8 @@ export function Dashboard({ courses, isDark }: DashboardProps) {
           <p className={`text-sm ${isDark ? 'text-gray-600' : 'text-white/70'}`}>Your attendance overview</p>
         </div>
         <div className={`px-3 py-1.5 rounded-full backdrop-blur-md border flex items-center gap-2 ${isDark
-            ? 'bg-white/20 border-white/30'
-            : 'bg-white/10 border-white/20'
+          ? 'bg-white/20 border-white/30'
+          : 'bg-white/10 border-white/20'
           }`}>
           <span className={`text-xs ${isDark ? 'text-gray-600' : 'text-white/70'}`}>Total Courses:</span>
           <span className={`text-sm ${isDark ? 'text-gray-900' : 'text-white'}`}>{totalCourses}</span>
@@ -37,8 +37,8 @@ export function Dashboard({ courses, isDark }: DashboardProps) {
       {/* Course Overview */}
       {courses.length > 0 && (
         <div className={`rounded-xl p-4 mb-4 backdrop-blur-md border shadow-lg ${isDark
-            ? 'bg-white/20 border-white/30 shadow-black/5'
-            : 'bg-white/10 border-white/20 shadow-black/10'
+          ? 'bg-gray-800/80 border-gray-700/50 shadow-black/5'
+          : 'bg-white/10 border-white/20 shadow-black/10'
           }`}>
           <p className={`text-xs mb-3 ${isDark ? 'text-gray-600' : 'text-white/70'}`}>Recent Courses</p>
           <div className="space-y-3">
@@ -49,8 +49,8 @@ export function Dashboard({ courses, isDark }: DashboardProps) {
                   }`}>
                   {/* Course name */}
                   <span className={`text-sm min-w-[60px] ${isOverLimit
-                      ? 'text-red-600 font-semibold'
-                      : isDark ? 'text-gray-900' : 'text-white'
+                    ? 'text-red-600 font-semibold'
+                    : isDark ? 'text-gray-900' : 'text-white'
                     }`}>
                     {course.shortName || course.name}
                   </span>
@@ -66,10 +66,10 @@ export function Dashboard({ courses, isDark }: DashboardProps) {
                       <div
                         key={index}
                         className={`h-6 rounded-full flex-1 ${index < course.leaves
-                            ? 'bg-red-500'
-                            : isDark
-                              ? 'bg-gray-300'
-                              : 'bg-white/40'
+                          ? 'bg-red-500'
+                          : isDark
+                            ? 'bg-gray-300'
+                            : 'bg-white/40'
                           }`}
                       />
                     ))}
@@ -77,8 +77,8 @@ export function Dashboard({ courses, isDark }: DashboardProps) {
 
                   {/* Leave count */}
                   <span className={`text-sm min-w-[20px] text-right ${isOverLimit
-                      ? 'text-red-600 font-semibold'
-                      : isDark ? 'text-gray-900' : 'text-white'
+                    ? 'text-red-600 font-semibold'
+                    : isDark ? 'text-gray-900' : 'text-white'
                     }`}>
                     {course.leaves}
                   </span>
@@ -92,15 +92,15 @@ export function Dashboard({ courses, isDark }: DashboardProps) {
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3">
         <div className={`rounded-xl p-3 backdrop-blur-md border shadow-lg ${isDark
-            ? 'bg-white/20 border-white/30 shadow-black/5'
-            : 'bg-white/15 border-white/20 shadow-black/10'
+          ? 'bg-gray-800/80 border-gray-700/50 shadow-black/5'
+          : 'bg-white/15 border-white/20 shadow-black/10'
           }`}>
           <p className={`text-xs mb-1 ${isDark ? 'text-gray-600' : 'text-white/70'}`}>Average</p>
           <p className={`text-2xl ${isDark ? 'text-gray-900' : 'text-white'}`}>{avgLeaves}</p>
         </div>
         <div className={`rounded-xl p-3 backdrop-blur-md border shadow-lg ${isDark
-            ? 'bg-white/20 border-white/30 shadow-black/5'
-            : 'bg-white/15 border-white/20 shadow-black/10'
+          ? 'bg-gray-800/80 border-gray-700/50 shadow-black/5'
+          : 'bg-white/15 border-white/20 shadow-black/10'
           }`}>
           <p className={`text-xs mb-1 ${isDark ? 'text-gray-600' : 'text-white/70'}`}>Highest</p>
           <p className={`text-2xl ${isDark ? 'text-gray-900' : 'text-white'}`}>{mostLeaves?.leaves || 0}</p>

@@ -59,6 +59,18 @@ function AppContent() {
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
   }, [isDark]);
 
+  // Scroll detection for header fade effect
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   // Register service worker
   useEffect(() => {
     if ('serviceWorker' in navigator) {
@@ -138,6 +150,13 @@ function AppContent() {
   const rawFirstName = user.displayName?.split(' ')[0] || 'there';
   const firstName = rawFirstName.charAt(0).toUpperCase() + rawFirstName.slice(1).toLowerCase();
 
+  // Calculate header opacity based on scroll (fades out between 0-100px)
+  const scrollProgress = Math.min(scrollY / 100, 1); // 0 to 1
+  // Apply ease-out cubic curve for smooth fade
+  const easedProgress = 1 - Math.pow(1 - scrollProgress, 3);
+  const headerOpacity = Math.max(0, 1 - easedProgress);
+  const headerTranslateY = Math.min(scrollY / 3, 20); // Subtle upward movement
+
   // Show main app if authenticated
   return (
     <div className={`min-h-screen transition-colors ${isDark
@@ -147,7 +166,14 @@ function AppContent() {
       {/* Mobile-optimized container */}
       <div className="max-w-2xl mx-auto min-h-screen flex flex-col">
         {/* Header */}
-        <header className="sticky top-0 z-10 backdrop-blur-lg bg-white/10 px-4 py-4">
+        <header
+          className="sticky top-0 z-10 backdrop-blur-lg bg-white/10 px-4 py-4 transition-all duration-300"
+          style={{
+            opacity: headerOpacity,
+            transform: `translateY(-${headerTranslateY}px)`,
+            pointerEvents: headerOpacity < 0.1 ? 'none' : 'auto'
+          }}
+        >
           <div className="flex items-center justify-between gap-3">
             <div className="flex-1 min-w-0">
               <h1 className={`text-xl whitespace-nowrap ${isDark ? 'text-white' : 'text-gray-800'}`}>
