@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { CourseList } from './components/CourseList';
 import { AddCourseButton } from './components/AddCourseButton';
@@ -7,6 +7,7 @@ import { PWAPrompt } from './components/PWAPrompt';
 import { LoginPage } from './components/LoginPage';
 import { UserDropdown } from './components/UserDropdown';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { DatabaseService, createDatabaseService, Course as DBCourse } from './firebase/database';
 
 export interface Course {
   id: string;
@@ -18,19 +19,41 @@ export interface Course {
 
 function AppContent() {
   const { user, loading } = useAuth();
-  const [courses, setCourses] = useState<Course[]>(() => {
-    const saved = localStorage.getItem('courses');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const dbServiceRef = useRef<DatabaseService | null>(null);
 
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('theme');
     return saved === 'dark';
   });
 
+  // Initialize database service when user logs in
   useEffect(() => {
-    localStorage.setItem('courses', JSON.stringify(courses));
-  }, [courses]);
+    if (user && !dbServiceRef.current) {
+      const dbService = createDatabaseService(user.uid);
+      dbServiceRef.current = dbService;
+
+      // Initialize and load courses (network-first)
+      dbService.initialize(setCourses).then((initialCourses) => {
+        setCourses(initialCourses);
+        setIsInitialized(true);
+      });
+    } else if (!user && dbServiceRef.current) {
+      // Clean up when user logs out
+      dbServiceRef.current.cleanup();
+      dbServiceRef.current = null;
+      setCourses([]);
+      setIsInitialized(false);
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (dbServiceRef.current) {
+        dbServiceRef.current.cleanup();
+      }
+    };
+  }, [user]);
 
   useEffect(() => {
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
@@ -58,19 +81,37 @@ function AppContent() {
       leaves: 0,
       maxLeaves,
     };
-    setCourses([...courses, newCourse]);
+    const updatedCourses = [...courses, newCourse];
+    setCourses(updatedCourses);
+
+    // Save to database (network-first, with offline fallback)
+    if (dbServiceRef.current) {
+      dbServiceRef.current.saveCourses(updatedCourses);
+    }
   };
 
   const updateLeaves = (id: string, delta: number) => {
-    setCourses(courses.map(course =>
+    const updatedCourses = courses.map(course =>
       course.id === id
         ? { ...course, leaves: Math.max(0, course.leaves + delta) }
         : course
-    ));
+    );
+    setCourses(updatedCourses);
+
+    // Save to database (network-first, with offline fallback)
+    if (dbServiceRef.current) {
+      dbServiceRef.current.saveCourses(updatedCourses);
+    }
   };
 
   const deleteCourse = (id: string) => {
-    setCourses(courses.filter(course => course.id !== id));
+    const updatedCourses = courses.filter(course => course.id !== id);
+    setCourses(updatedCourses);
+
+    // Save to database (network-first, with offline fallback)
+    if (dbServiceRef.current) {
+      dbServiceRef.current.saveCourses(updatedCourses);
+    }
   };
 
   // Show loading state

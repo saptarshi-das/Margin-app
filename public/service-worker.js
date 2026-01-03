@@ -1,4 +1,4 @@
-const CACHE_NAME = 'margin-app-v1';
+const CACHE_NAME = 'margin-app-v2'; // Updated for database implementation
 const urlsToCache = [
   '/'
   // Vite handles bundling, so we'll use a network-first strategy
