@@ -5,7 +5,7 @@ import { AddCourseButton } from './components/AddCourseButton';
 import { Dashboard } from './components/Dashboard';
 import { PWAPrompt } from './components/PWAPrompt';
 import { LoginPage } from './components/LoginPage';
-import { UserProfile } from './components/UserProfile';
+import { UserDropdown } from './components/UserDropdown';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 export interface Course {
@@ -77,8 +77,8 @@ function AppContent() {
   if (loading) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${isDark
-          ? 'bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900'
-          : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'
+        ? 'bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900'
+        : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'
         }`}>
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -93,44 +93,59 @@ function AppContent() {
     return <LoginPage isDark={isDark} />;
   }
 
+  // Get user's first name with proper capitalization (first letter uppercase, rest lowercase)
+  const rawFirstName = user.displayName?.split(' ')[0] || 'there';
+  const firstName = rawFirstName.charAt(0).toUpperCase() + rawFirstName.slice(1).toLowerCase();
+
   // Show main app if authenticated
   return (
     <div className={`min-h-screen transition-colors ${isDark
-        ? 'bg-gradient-to-br from-gray-900 to-gray-800'
-        : 'bg-gradient-to-br from-blue-50 to-indigo-100'
+      ? 'bg-gradient-to-br from-gray-900 to-gray-800'
+      : 'bg-gradient-to-br from-blue-50 to-indigo-100'
       }`}>
       {/* Mobile-optimized container */}
       <div className="max-w-2xl mx-auto min-h-screen flex flex-col">
         {/* Header */}
-        <header className="sticky top-0 z-10 backdrop-blur-lg bg-white/10 px-4 py-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className={`text-xl ${isDark ? 'text-white' : 'text-gray-800'}`}>
+        <header className="sticky top-0 z-10 backdrop-blur-lg bg-white/10 px-4 py-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <h1 className={`text-xl whitespace-nowrap ${isDark ? 'text-white' : 'text-gray-800'}`}>
                 <b>Margin</b>
               </h1>
-              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              <p className={`text-sm whitespace-nowrap ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                 Maximise your Leaves
               </p>
             </div>
-            <button
-              onClick={() => setIsDark(!isDark)}
-              className={`p-3 rounded-full transition-all active:scale-95 ${isDark
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {/* Dark Mode Toggle */}
+              <button
+                onClick={() => setIsDark(!isDark)}
+                className={`p-3 rounded-full transition-all active:scale-95 ${isDark
                   ? 'bg-gray-700 hover:bg-gray-600 text-yellow-400'
                   : 'bg-white hover:bg-gray-100 text-gray-700'
-                } shadow-md`}
-            >
-              {isDark ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
-          </div>
+                  } shadow-md`}
+              >
+                {isDark ? <Sun size={20} /> : <Moon size={20} />}
+              </button>
 
-          {/* User Profile */}
-          <UserProfile isDark={isDark} />
+              {/* User Dropdown - Button in header, menu renders separately */}
+              <UserDropdown isDark={isDark} />
+            </div>
+          </div>
         </header>
 
         {/* Main Content */}
         <main className="flex-1 p-4 space-y-4 pb-6">
           {/* PWA Install Prompt */}
           <PWAPrompt isDark={isDark} />
+
+          {/* Greeting */}
+          <div className="mb-2">
+            <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'
+              }`}>
+              Hi, {firstName}!
+            </h2>
+          </div>
 
           {/* Dashboard */}
           <Dashboard courses={courses} isDark={isDark} />
