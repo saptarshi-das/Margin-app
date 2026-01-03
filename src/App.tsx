@@ -208,8 +208,15 @@ function AppContent() {
 
           {/* Greeting */}
           <div className="mb-2">
-            <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'
-              }`}>
+            <h2
+              className={`text-2xl font-black ${isDark ? 'text-white' : 'text-gray-900'}`}
+              style={{
+                fontWeight: 500,
+                textShadow: isDark
+                  ? '0 0 1px rgba(255,255,255,0.5)'
+                  : '0 0 1px rgba(0,0,0,0.3)'
+              }}
+            >
               Hi, {firstName}!
             </h2>
           </div>
