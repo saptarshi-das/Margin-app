@@ -89,20 +89,31 @@ export class DatabaseService {
     }
 
     /**
-     * Initialize and get courses (network-first strategy)
-     * Returns courses immediately from localStorage, then updates from server if online
+     * Initialize with cache-first strategy (INSTANT LOAD)
+     * Returns localStorage data immediately (synchronous), then syncs with server in background
      */
-    async initialize(onCoursesUpdate: (courses: Course[]) => void): Promise<Course[]> {
-        // 1. Immediately return local data for fast UI rendering
+    initialize(onCoursesUpdate: (courses: Course[]) => void): Course[] {
+        // 1. Get local data synchronously - NO WAITING!
         const localCourses = this.getLocalCourses();
+        console.log('⚡ Loaded from cache instantly:', localCourses.length, 'courses');
 
-        // 2. If offline, just return local data
+        // 2. If offline, just use local data
         if (!this.isOnline) {
-            console.log('📴 Offline - using local data');
+            console.log('📴 Offline - using cached data only');
             return localCourses;
         }
 
-        // 3. If online, try to fetch from server
+        // 3. Sync with server in the background (non-blocking)
+        this.syncWithServer(localCourses, onCoursesUpdate);
+
+        // 4. Return local data immediately - UI shows instantly!
+        return localCourses;
+    }
+
+    /**
+     * Background sync with server (non-blocking)
+     */
+    private async syncWithServer(localCourses: Course[], onCoursesUpdate: (courses: Course[]) => void) {
         try {
             const docRef = this.getUserDocRef();
             const docSnap = await getDoc(docRef);
@@ -114,23 +125,13 @@ export class DatabaseService {
 
                 // Use server data if it's newer
                 if (serverTimestamp >= localTimestamp) {
-                    console.log('📡 Using server data (newer)');
+                    console.log('📡 Server has newer data - updating UI');
                     this.saveLocalCourses(serverCourses);
                     onCoursesUpdate(serverCourses);
-
-                    // Set up real-time listener
-                    this.setupRealtimeListener(onCoursesUpdate);
-
-                    return serverCourses;
                 } else {
                     // Local data is newer, sync to server
                     console.log('💾 Local data is newer - syncing to server');
                     await this.saveCourses(localCourses);
-
-                    // Set up real-time listener
-                    this.setupRealtimeListener(onCoursesUpdate);
-
-                    return localCourses;
                 }
             } else {
                 // No server data, upload local data if any
@@ -138,15 +139,12 @@ export class DatabaseService {
                     console.log('🔄 Uploading local data to server');
                     await this.saveCourses(localCourses);
                 }
-
-                // Set up real-time listener
-                this.setupRealtimeListener(onCoursesUpdate);
-
-                return localCourses;
             }
+
+            // Set up real-time listener after initial sync
+            this.setupRealtimeListener(onCoursesUpdate);
         } catch (error) {
-            console.error('Error fetching from server, using local data:', error);
-            return localCourses;
+            console.error('⚠️ Background sync failed (local data still works):', error);
         }
     }
 

@@ -34,11 +34,11 @@ function AppContent() {
       const dbService = createDatabaseService(user.uid);
       dbServiceRef.current = dbService;
 
-      // Initialize and load courses (network-first)
-      dbService.initialize(setCourses).then((initialCourses) => {
-        setCourses(initialCourses);
-        setIsInitialized(true);
-      });
+      // ⚡ CACHE-FIRST: Load instantly from localStorage (no await!)
+      // Database syncs in background and updates UI if server has newer data
+      const cachedCourses = dbService.initialize(setCourses);
+      setCourses(cachedCourses);
+      setIsInitialized(true); // UI shows immediately!
     } else if (!user && dbServiceRef.current) {
       // Clean up when user logs out
       dbServiceRef.current.cleanup();
