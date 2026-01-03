@@ -4,6 +4,9 @@ import { CourseList } from './components/CourseList';
 import { AddCourseButton } from './components/AddCourseButton';
 import { Dashboard } from './components/Dashboard';
 import { PWAPrompt } from './components/PWAPrompt';
+import { LoginPage } from './components/LoginPage';
+import { UserProfile } from './components/UserProfile';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 export interface Course {
   id: string;
@@ -13,7 +16,8 @@ export interface Course {
   maxLeaves: number;
 }
 
-export default function App() {
+function AppContent() {
+  const { user, loading } = useAuth();
   const [courses, setCourses] = useState<Course[]>(() => {
     const saved = localStorage.getItem('courses');
     return saved ? JSON.parse(saved) : [];
@@ -58,8 +62,8 @@ export default function App() {
   };
 
   const updateLeaves = (id: string, delta: number) => {
-    setCourses(courses.map(course => 
-      course.id === id 
+    setCourses(courses.map(course =>
+      course.id === id
         ? { ...course, leaves: Math.max(0, course.leaves + delta) }
         : course
     ));
@@ -69,34 +73,58 @@ export default function App() {
     setCourses(courses.filter(course => course.id !== id));
   };
 
+  // Show loading state
+  if (loading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${isDark
+          ? 'bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900'
+          : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'
+        }`}>
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className={isDark ? 'text-white' : 'text-gray-900'}>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login page if not authenticated
+  if (!user) {
+    return <LoginPage isDark={isDark} />;
+  }
+
+  // Show main app if authenticated
   return (
-    <div className={`min-h-screen transition-colors ${
-      isDark 
-        ? 'bg-gradient-to-br from-gray-900 to-gray-800' 
+    <div className={`min-h-screen transition-colors ${isDark
+        ? 'bg-gradient-to-br from-gray-900 to-gray-800'
         : 'bg-gradient-to-br from-blue-50 to-indigo-100'
-    }`}>
+      }`}>
       {/* Mobile-optimized container */}
       <div className="max-w-2xl mx-auto min-h-screen flex flex-col">
         {/* Header */}
-        <header className="sticky top-0 z-10 backdrop-blur-lg bg-white/10 px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 className={`text-xl ${isDark ? 'text-white' : 'text-gray-800'}`}>
-              <b>Margin</b>
-            </h1>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-              Maximise your Leaves
-            </p>
+        <header className="sticky top-0 z-10 backdrop-blur-lg bg-white/10 px-4 py-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className={`text-xl ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                <b>Margin</b>
+              </h1>
+              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                Maximise your Leaves
+              </p>
+            </div>
+            <button
+              onClick={() => setIsDark(!isDark)}
+              className={`p-3 rounded-full transition-all active:scale-95 ${isDark
+                  ? 'bg-gray-700 hover:bg-gray-600 text-yellow-400'
+                  : 'bg-white hover:bg-gray-100 text-gray-700'
+                } shadow-md`}
+            >
+              {isDark ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
           </div>
-          <button
-            onClick={() => setIsDark(!isDark)}
-            className={`p-3 rounded-full transition-all active:scale-95 ${
-              isDark 
-                ? 'bg-gray-700 hover:bg-gray-600 text-yellow-400' 
-                : 'bg-white hover:bg-gray-100 text-gray-700'
-            } shadow-md`}
-          >
-            {isDark ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
+
+          {/* User Profile */}
+          <UserProfile isDark={isDark} />
         </header>
 
         {/* Main Content */}
@@ -111,8 +139,8 @@ export default function App() {
           <AddCourseButton onAddCourse={addCourse} isDark={isDark} />
 
           {/* Course List */}
-          <CourseList 
-            courses={courses} 
+          <CourseList
+            courses={courses}
             onUpdateLeaves={updateLeaves}
             onDeleteCourse={deleteCourse}
             isDark={isDark}
@@ -120,5 +148,13 @@ export default function App() {
         </main>
       </div>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
