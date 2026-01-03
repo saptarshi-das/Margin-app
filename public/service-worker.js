@@ -19,6 +19,21 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Only cache GET requests (skip POST/PUT/DELETE from Firestore)
+  // This prevents "Request method 'POST' is unsupported" errors
+  if (event.request.method !== 'GET') {
+    return; // Don't handle non-GET requests
+  }
+
+  // Skip caching for Firebase/Firestore API calls
+  const url = new URL(event.request.url);
+  if (url.hostname.includes('firebaseio.com') ||
+    url.hostname.includes('firebase.google.com') ||
+    url.hostname.includes('googleapis.com') ||
+    url.hostname.includes('firestore.googleapis.com')) {
+    return; // Let Firestore handle its own caching
+  }
+
   // Network-first strategy: try network, fall back to cache
   event.respondWith(
     fetch(event.request)
