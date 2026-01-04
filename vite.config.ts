@@ -52,6 +52,30 @@ export default defineConfig({
   build: {
     target: 'esnext',
     outDir: 'dist',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Split Firebase into a separate chunk (heavy library)
+          'firebase': [
+            'firebase/app',
+            'firebase/auth',
+            'firebase/firestore'
+          ],
+          // Split React and related into vendor chunk
+          'vendor-react': [
+            'react',
+            'react-dom',
+            'react/jsx-runtime'
+          ],
+          // Split UI library (lucide icons) separately
+          'vendor-ui': [
+            'lucide-react'
+          ]
+        }
+      }
+    },
+    // Increase chunk size warning limit since we're code-splitting
+    chunkSizeWarningLimit: 600
   },
   server: {
     port: 3000,

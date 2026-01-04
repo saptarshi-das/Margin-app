@@ -10,6 +10,9 @@ import {
 } from 'firebase/firestore';
 import { db } from './config';
 
+// Use MODE instead of DEV to avoid TS issues
+const IS_DEV = import.meta.env.MODE === 'development';
+
 export interface Course {
     id: string;
     name: string;
@@ -45,14 +48,18 @@ export class DatabaseService {
     private setupOnlineListener() {
         window.addEventListener('online', () => {
             this.isOnline = true;
-            console.log('📡 Connection restored - syncing with server...');
+            if (IS_DEV) {
+                console.log('📡 Connection restored - syncing with server...');
+            }
             // When back online, sync local changes to server
             this.syncLocalToServer();
         });
 
         window.addEventListener('offline', () => {
             this.isOnline = false;
-            console.log('📴 Connection lost - using local storage');
+            if (IS_DEV) {
+                console.log('📴 Connection lost - using local storage');
+            }
         });
     }
 
@@ -95,11 +102,17 @@ export class DatabaseService {
     initialize(onCoursesUpdate: (courses: Course[]) => void): Course[] {
         // 1. Get local data synchronously - NO WAITING!
         const localCourses = this.getLocalCourses();
-        console.log('⚡ Loaded from cache instantly:', localCourses.length, 'courses');
+
+        // Only log in development
+        if (IS_DEV) {
+            console.log('⚡ Loaded from cache instantly:', localCourses.length, 'courses');
+        }
 
         // 2. If offline, just use local data
         if (!this.isOnline) {
-            console.log('📴 Offline - using cached data only');
+            if (IS_DEV) {
+                console.log('📴 Offline - using cached data only');
+            }
             return localCourses;
         }
 
@@ -125,18 +138,24 @@ export class DatabaseService {
 
                 // Use server data if it's newer
                 if (serverTimestamp >= localTimestamp) {
-                    console.log('📡 Server has newer data - updating UI');
+                    if (IS_DEV) {
+                        console.log('📡 Server has newer data - updating UI');
+                    }
                     this.saveLocalCourses(serverCourses);
                     onCoursesUpdate(serverCourses);
                 } else {
                     // Local data is newer, sync to server
-                    console.log('💾 Local data is newer - syncing to server');
+                    if (IS_DEV) {
+                        console.log('💾 Local data is newer - syncing to server');
+                    }
                     await this.saveCourses(localCourses);
                 }
             } else {
                 // No server data, upload local data if any
                 if (localCourses.length > 0) {
-                    console.log('🔄 Uploading local data to server');
+                    if (IS_DEV) {
+                        console.log('🔄 Uploading local data to server');
+                    }
                     await this.saveCourses(localCourses);
                 }
             }
@@ -162,7 +181,9 @@ export class DatabaseService {
             (docSnap) => {
                 if (docSnap.exists()) {
                     const courses = docSnap.data().courses || [];
-                    console.log('🔔 Real-time update from server');
+                    if (IS_DEV) {
+                        console.log('🔔 Real-time update from server');
+                    }
                     this.saveLocalCourses(courses);
                     onCoursesUpdate(courses);
                 }
@@ -182,7 +203,9 @@ export class DatabaseService {
 
         // Try to save to server if online
         if (!this.isOnline) {
-            console.log('📴 Offline - saved to local storage only');
+            if (IS_DEV) {
+                console.log('📴 Offline - saved to local storage only');
+            }
             return;
         }
 
@@ -193,7 +216,9 @@ export class DatabaseService {
                 updatedAt: Timestamp.now(),
                 userId: this.userId
             });
-            console.log('✅ Saved to server and local storage');
+            if (IS_DEV) {
+                console.log('✅ Saved to server and local storage');
+            }
         } catch (error) {
             console.error('⚠️ Failed to save to server (saved locally):', error);
             // Data is already in localStorage, so app continues to work
@@ -208,9 +233,13 @@ export class DatabaseService {
         if (localCourses.length > 0) {
             try {
                 await this.saveCourses(localCourses);
-                console.log('✅ Synced local changes to server');
+                if (IS_DEV) {
+                    console.log('✅ Synced local changes to server');
+                }
             } catch (error) {
-                console.error('⚠️ Failed to sync local changes:', error);
+                if (IS_DEV) {
+                    console.error('⚠️ Failed to sync local changes:', error);
+                }
             }
         }
     }
