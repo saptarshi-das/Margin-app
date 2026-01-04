@@ -4,6 +4,7 @@ import { CourseList } from './components/CourseList';
 import { AddCourseButton } from './components/AddCourseButton';
 import { Dashboard } from './components/Dashboard';
 import { PWAPrompt } from './components/PWAPrompt';
+import { UpdatePrompt } from './components/UpdatePrompt';
 import { LoginPage } from './components/LoginPage';
 import { UserDropdown } from './components/UserDropdown';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -160,6 +161,9 @@ function AppContent() {
       ? 'bg-gradient-to-br from-gray-900 to-gray-800'
       : 'bg-gradient-to-br from-blue-50 to-indigo-100'
       }`}>
+      {/* Update notification banner */}
+      <UpdatePrompt />
+
       {/* Mobile-optimized container */}
       <div className="max-w-2xl mx-auto min-h-screen flex flex-col">
         {/* Header */}
