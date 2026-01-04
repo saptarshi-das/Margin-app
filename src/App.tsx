@@ -126,16 +126,13 @@ function AppContent() {
     }
   };
 
-  // Show loading state
+  // Show loading state (always light themed)
   if (loading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${isDark
-        ? 'bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900'
-        : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'
-        }`}>
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className={isDark ? 'text-white' : 'text-gray-900'}>Loading...</p>
+          <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-900 font-medium">Loading...</p>
         </div>
       </div>
     );

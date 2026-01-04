@@ -32,11 +32,26 @@ interface AuthProviderProps {
 const ALLOWED_DOMAIN = 'iimranchi.ac.in';
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
+    // Initialize from current auth state (synchronous, no delay!)
+    const initialUser = auth.currentUser;
+    const [user, setUser] = useState<User | null>(initialUser);
+    const [loading, setLoading] = useState(!initialUser); // Only show loading if no cached user
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        // If we already have a user from cache, validate their domain
+        if (initialUser) {
+            const email = initialUser.email || '';
+            const domain = email.split('@')[1];
+
+            if (domain !== ALLOWED_DOMAIN) {
+                // Invalid domain, sign them out
+                firebaseSignOut(auth);
+                setUser(null);
+                setError(`Only ${ALLOWED_DOMAIN} email addresses are allowed.`);
+            }
+        }
+
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             if (currentUser) {
                 // Verify the user's email domain
